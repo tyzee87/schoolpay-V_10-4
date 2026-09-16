@@ -1,0 +1,12 @@
+============================================================
+SCHOOLPAY V10
+Database: /data/data/com.termux/files/home/SchoolPay_V10/SchoolPay_V10/schoolpay.db
+Open: http://127.0.0.1:5000
+Default first-run accounts: admin/admin123 and bursar/bursar123
+Change the password immediately after first login.
+============================================================
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
