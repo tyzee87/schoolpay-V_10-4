@@ -1810,7 +1810,8 @@ def daraja_config():
     if row:
         return dict(row)
     return {
-        "ckey": os.environ.get("MPESA_CONSUMER_KEY", ""),
+        "ckey": os.environ.get("try:
+    MPESA_CONSUMER_KEY", ""),
         "csecret": os.environ.get("MPESA_CONSUMER_SECRET", ""),
         "shortcode": os.environ.get("MPESA_SHORTCODE", "174379"),
         "passkey": os.environ.get("MPESA_PASSKEY", ""),
