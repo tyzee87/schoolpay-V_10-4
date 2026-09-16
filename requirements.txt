@@ -1,4 +1,5 @@
-flask
-flask_sqlalchemy
-requests
+Flask
+openpyxl
 gunicorn
+pandas
+Werkzeug
