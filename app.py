@@ -4103,45 +4103,37 @@ _auto_mpesa_thread = threading.Thread(target=auto_reconcile_pending_mpesa, name=
 _auto_mpesa_thread.start()
 
 
-@app.route('/proxy/daraja-token')
+
 def proxy_daraja_token():
-    import sqlite3, base64, requests
-    conn = sqlite3.connect("schoolpay.db")
-    ckey, csecret = conn.execute("SELECT ckey, csecret FROM daraja_config WHERE id=1").fetchone()
-    auth = __import__("base64").b64encode(f"{ckey}:{csecret}".encode()).decode()
-    r = requests.get("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", headers={"Authorization": f"Basic {auth}", "User-Agent": "Mozilla/5.0"}, timeout=15)
-    return r.json()
-
-if __name__ == "__main__":
-    host = os.environ.get("HOST", "127.0.0.1")
-    port = int(os.environ.get("PORT", "5000"))
-    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
-    print("=" * 60)
-    print("SCHOOLPAY V10")
-    print(f"Database: {DB}")
-    print(f"Open: http://{host}:{port}")
-    print("Default first-run accounts: admin/admin123 and bursar/bursar123")
-    print("Change the password immediately after first login.")
-    print("=" * 60)
-    app.run(host=host, port=port, debug=debug)
-
-@app.route('/test-status-live')
-def test_status_live():
-    import sqlite3, base64, requests
     try:
-        conn = sqlite3.connect("schoolpay.db")
-        row = conn.execute("SELECT ckey, csecret FROM daraja_config WHERE id=1").fetchone()
-        if not row: return "No daraja_config data"
-        ckey, csecret = row
-        auth = base64.b64encode(f"{ckey}:{csecret}".encode()).decode()
-        r = requests.get("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
-                         headers={"Authorization": f"Basic {auth}", "User-Agent": "Mozilla/5.0"},
-                         timeout=15)
-        j = r.json()
-        if "access_token" in j:
-            return f"✅ LIVE ON RENDER - Token OK! Key len {len(ckey)} - Incapsula NOT blocking Render. Your status request fix is working. DB ts_result is stable."
+        cfg = daraja_config()
+        import base64, requests, os
+        key = cfg.get('ckey') or cfg.get('consumer_key') or os.environ.get('MPESA_CKEY','')
+        secret = cfg.get('csecret') or cfg.get('consumer_secret') or os.environ.get('MPESA_CSECRET','')
+        env = (cfg.get('env') or 'sandbox').lower()
+        if env == 'production':
+            url = "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
         else:
-            return f"Token failed: {r.text[:500]}"
+            url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+        auth = base64.b64encode(f"{key}:{secret}".encode()).decode()
+        r = requests.get(url, headers={"Authorization": f"Basic {auth}"}, timeout=10)
+        return (r.text, r.status_code, {"Content-Type": "application/json"})
     except Exception as e:
-        return f"Error: {e}"
-
+        return (f'{{"error":"{e}"}}', 500, {"Content-Type": "application/json"})
+@app.route("/proxy/daraja-token")
+def proxy_daraja_token():
+    try:
+        cfg = daraja_config()
+        import base64, requests, os
+        key = cfg.get('ckey') or cfg.get('consumer_key') or os.environ.get('MPESA_CKEY','')
+        secret = cfg.get('csecret') or cfg.get('consumer_secret') or os.environ.get('MPESA_CSECRET','')
+        env = (cfg.get('env') or 'sandbox').lower()
+        if env == 'production':
+            url = "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+        else:
+            url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+        auth = base64.b64encode(f"{key}:{secret}".encode()).decode()
+        r = requests.get(url, headers={"Authorization": f"Basic {auth}"}, timeout=10)
+        return (r.text, r.status_code, {"Content-Type": "application/json"})
+    except Exception as e:
+        return (f'{{"error":"{e}"}}', 500, {"Content-Type": "application/json"})
